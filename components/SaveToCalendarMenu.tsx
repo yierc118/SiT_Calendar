@@ -5,22 +5,49 @@ import { buildGoogleCalendarUrl } from '@/lib/calendar/google'
 import { buildOutlookCalendarUrl } from '@/lib/calendar/outlook'
 import type { ApprovedEvent } from '@/types/event'
 
+interface DropdownPos { top: number; left: number }
+
 export function SaveToCalendarMenu({ event }: { event: ApprovedEvent }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<DropdownPos>({ top: 0, left: 0 })
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  function openMenu() {
+    if (!buttonRef.current) return
+    const rect = buttonRef.current.getBoundingClientRect()
+    const dropdownWidth = 170
+    // Flip left if near right edge
+    const left = rect.right + dropdownWidth > window.innerWidth
+      ? rect.right - dropdownWidth
+      : rect.left
+    setPos({ top: rect.bottom + 6, left })
+    setOpen(true)
+  }
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    function handleClose(e: MouseEvent) {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+        buttonRef.current && !buttonRef.current.contains(e.target as Node)
+      ) setOpen(false)
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    if (open) document.addEventListener('mousedown', handleClose)
+    return () => document.removeEventListener('mousedown', handleClose)
+  }, [open])
+
+  // Close on scroll so the fixed dropdown doesn't drift
+  useEffect(() => {
+    if (open) {
+      window.addEventListener('scroll', () => setOpen(false), { once: true, capture: true })
+    }
+  }, [open])
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
+    <>
       <button
-        onClick={() => setOpen((o) => !o)}
+        ref={buttonRef}
+        onClick={open ? () => setOpen(false) : openMenu}
         aria-haspopup="true"
         aria-expanded={open}
         aria-label="Save to calendar"
@@ -51,18 +78,21 @@ export function SaveToCalendarMenu({ event }: { event: ApprovedEvent }) {
       </button>
 
       {open && (
-        <div style={{
-          position: 'absolute',
-          left: 0,
-          top: 'calc(100% + 6px)',
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-lg)',
-          padding: '4px 0',
-          zIndex: 50,
-          minWidth: '160px',
-        }}>
+        <div
+          ref={dropdownRef}
+          style={{
+            position: 'fixed',
+            top: pos.top,
+            left: pos.left,
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-lg)',
+            padding: '4px 0',
+            zIndex: 999,
+            minWidth: '170px',
+          }}
+        >
           {[
             { label: 'Google Calendar', href: buildGoogleCalendarUrl(event), icon: 'G' },
             { label: 'Outlook', href: buildOutlookCalendarUrl(event), icon: 'O' },
@@ -96,12 +126,13 @@ export function SaveToCalendarMenu({ event }: { event: ApprovedEvent }) {
                 fontSize: '11px',
                 fontWeight: 700,
                 color: 'var(--text-muted)',
+                flexShrink: 0,
               }}>{icon}</span>
               {label}
             </a>
           ))}
         </div>
       )}
-    </div>
+    </>
   )
 }
