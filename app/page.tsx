@@ -127,7 +127,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
             <h1 style={{ fontFamily: 'var(--font-playfair)', fontSize: '20px', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2 }}>
               SiT Calendar
             </h1>
-            <p style={{ fontSize: '11px', color: 'var(--text-subtle)', marginTop: '1px' }}>shared by the community · not organised by us</p>
+            <p style={{ fontSize: '11px', color: 'var(--text-subtle)', marginTop: '1px' }}>community-shared · SiT and non-SiT events welcome</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ThemeToggle />
