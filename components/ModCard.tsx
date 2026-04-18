@@ -45,6 +45,7 @@ function tagStyle(tag: string): React.CSSProperties {
 
 export function ModCard({ event, duplicateTitle, onApprove, onReject, onEdit }: ModCardProps) {
   const [editing, setEditing] = useState(false)
+  const [confirmingReject, setConfirmingReject] = useState(false)
 
   function handleEditSubmit(
     data: ExtractedEvent & { submitter_name: string; submitter_email: string }
@@ -212,21 +213,56 @@ export function ModCard({ event, duplicateTitle, onApprove, onReject, onEdit }: 
             >
               ✓ Approve
             </button>
-            <button
-              onClick={() => onReject(event.id)}
-              style={{
-                background: '#DC2626',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                padding: '7px 14px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              ✕ Reject
-            </button>
+            {confirmingReject ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Sure?</span>
+                <button
+                  onClick={() => { onReject(event.id); setConfirmingReject(false) }}
+                  style={{
+                    background: '#DC2626',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '7px 12px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Yes, reject
+                </button>
+                <button
+                  onClick={() => setConfirmingReject(false)}
+                  style={{
+                    background: 'none',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '7px 12px',
+                    fontSize: '13px',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmingReject(true)}
+                style={{
+                  background: 'none',
+                  border: '1px solid #DC2626',
+                  color: '#DC2626',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '7px 14px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕ Reject
+              </button>
+            )}
             <button
               onClick={() => setEditing(true)}
               style={{
